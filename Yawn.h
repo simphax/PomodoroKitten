@@ -17,10 +17,10 @@ class Yawn
     bool loop();
 
   protected:
-    AudioGeneratorMP3 *mp3;
-    AudioFileSourceSPIFFS *file;
-    AudioOutputI2SNoDAC *out;
-    AudioFileSourceID3 *id3;
+    AudioGeneratorMP3 *mp3 = NULL;
+    AudioFileSourceSPIFFS *file = NULL;
+    AudioOutputI2SNoDAC *out = NULL;
+    AudioFileSourceID3 *id3 = NULL;
 };
 
 #endif

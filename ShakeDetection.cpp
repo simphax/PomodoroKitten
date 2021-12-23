@@ -6,6 +6,7 @@ static const int TIME_THRESHOLD = 100;
 static const int SHAKE_TIMEOUT = 500;
 static const int SHAKE_DURATION = 2000;
 static const int SHAKE_COUNT = 3;
+static const int ACCELEROMETER_X_PIN = A0;
 
 ShakeDetection::ShakeDetection() {
   
@@ -15,7 +16,7 @@ bool ShakeDetection::setup() {
   return true;
 }
 
-bool ShakeDetection::loop(int acc_x) {
+bool ShakeDetection::loop() {
   unsigned long now = millis();
   if ((now - lastForceTime) > SHAKE_TIMEOUT) {
     shakeCount = 0;
@@ -23,6 +24,7 @@ bool ShakeDetection::loop(int acc_x) {
   
   if ((now - lastTime) > TIME_THRESHOLD) {
     unsigned long diff = now - lastTime;
+    int acc_x = analogRead(ACCELEROMETER_X_PIN);
     int speed = abs(acc_x - lastX) / diff * 1000;
     if (speed > FORCE_THRESHOLD) {
       if ((++shakeCount >= SHAKE_COUNT) && (now - lastShakeTime > SHAKE_DURATION)) {

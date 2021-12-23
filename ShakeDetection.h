@@ -9,7 +9,7 @@ class ShakeDetection
     ShakeDetection();
     bool setup();
     void onShake(const std::function<void(void)>& f);
-    bool loop(int acc_x);
+    bool loop();
 
   protected:
     std::function<void(void)> onShakeCallback;

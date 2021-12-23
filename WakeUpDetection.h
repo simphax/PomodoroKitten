@@ -7,9 +7,9 @@ class WakeUpDetection
 {
   public:
     WakeUpDetection();
-    bool setup(int acc_x);
+    bool setup();
     void onActivity(const std::function<void(void)>& f);
-    bool loop(int acc_x);
+    bool loop();
 
   protected:
     std::function<void(void)> onActivityCallback;

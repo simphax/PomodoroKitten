@@ -9,7 +9,7 @@ class LeanBackDetection
     LeanBackDetection();
     bool setup();
     void onLeanBack(const std::function<void(void)>& f);
-    bool loop(int acc_x);
+    bool loop();
 
   protected:
     std::function<void(void)> onLeanBackCallback;

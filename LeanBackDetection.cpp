@@ -2,9 +2,11 @@
 #include "LeanBackDetection.h"
 
 static const int OUT_OF_BOUNDS_THRESHOLD = 30;
-static const int LEAN_BACK_X = 440;
+static const int LEAN_BACK_X = 320;
 static const int TIME_AVERAGE = 100;
+static const int TIME_READ = 20;
 static const int LEANING_DURATION_THRESHOLD = 3000;
+static const int ACCELEROMETER_X_PIN = A0;
 
 LeanBackDetection::LeanBackDetection() {
   
@@ -18,11 +20,13 @@ bool LeanBackDetection::setup() {
   return true;
 }
 
-bool LeanBackDetection::loop(int acc_x) {
+bool LeanBackDetection::loop() {
   unsigned long now = millis();
 
-  accumulatedX += acc_x;
-  accumulatedCount++;
+  if ((now - lastTime) > TIME_READ) {
+    accumulatedX += analogRead(ACCELEROMETER_X_PIN);
+    accumulatedCount++;
+  }
   if ((now - lastTime) > TIME_AVERAGE) {
     int averageX = accumulatedX / accumulatedCount;
     accumulatedX = 0;
@@ -41,7 +45,6 @@ bool LeanBackDetection::loop(int acc_x) {
     
     lastTime = now;
   }
-
   return true;
 }
 

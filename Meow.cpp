@@ -14,7 +14,7 @@
 // Use the "Tools->ESP8266/ESP32 Sketch Data Upload" menu to write the MP3 to SPIFFS
 // Then upload the sketch normally.
 
-Meow::Meow() {
+Meow::Meow() { 
   
 }
 
@@ -23,12 +23,14 @@ bool Meow::setup() {
 }
 
 bool Meow::stop() {
-  if (mp3 && mp3->isRunning()) mp3->stop();
+  if (mp3 && mp3->isRunning()) mp3->stop();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+  delay(10);
   return true;
 }
 
 bool Meow::play() {
-  if (mp3 && mp3->isRunning()) mp3->stop();
+  if (mp3) if(mp3->isRunning()) mp3->stop();
+  delay(10);
   file = new AudioFileSourceSPIFFS("/meow.mp3");
   out = new AudioOutputI2SNoDAC();
   id3 = new AudioFileSourceID3(file);

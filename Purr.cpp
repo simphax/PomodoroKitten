@@ -24,11 +24,13 @@ bool Purr::setup() {
 
 bool Purr::stop() {
   if (mp3 && mp3->isRunning()) mp3->stop();
+  delay(10);
   return true;
 }
 
 bool Purr::play() {
   if (mp3 && mp3->isRunning()) mp3->stop();
+  delay(10);
   file = new AudioFileSourceSPIFFS("/purr.mp3");
   out = new AudioOutputI2SNoDAC();
   id3 = new AudioFileSourceID3(file);
