@@ -2,9 +2,8 @@
 #define _YAWN_H
 
 #include <Arduino.h>
-#include "AudioFileSourceSPIFFS.h"
-#include "AudioFileSourceID3.h"
-#include "AudioGeneratorMP3.h"
+#include "AudioFileSourcePROGMEM.h"
+#include "AudioGeneratorWAV.h"
 #include "AudioOutputI2SNoDAC.h"
 
 class Yawn
@@ -17,10 +16,9 @@ class Yawn
     bool loop();
 
   protected:
-    AudioGeneratorMP3 *mp3 = NULL;
-    AudioFileSourceSPIFFS *file = NULL;
+    AudioGeneratorWAV *wav = NULL;
+    AudioFileSourcePROGMEM *file = NULL;
     AudioOutputI2SNoDAC *out = NULL;
-    AudioFileSourceID3 *id3 = NULL;
 };
 
 #endif

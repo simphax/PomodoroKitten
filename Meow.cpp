@@ -5,6 +5,7 @@
   #include <ESP8266WiFi.h>
 #endif
 #include "Meow.h"
+#include "meowWav.h"
 #include "AudioFileSourceSPIFFS.h"
 #include "AudioFileSourceID3.h"
 #include "AudioGeneratorMP3.h"
@@ -19,30 +20,28 @@ Meow::Meow() {
 }
 
 bool Meow::setup() {
+  out = new AudioOutputI2SNoDAC();
+  wav = new AudioGeneratorWAV();
   return true;
 }
 
 bool Meow::stop() {
-  if (mp3 && mp3->isRunning()) mp3->stop();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+  if (wav && wav->isRunning()) wav->stop();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
   delay(10);
   return true;
 }
 
 bool Meow::play() {
-  if (mp3) if(mp3->isRunning()) mp3->stop();
-  delay(10);
-  file = new AudioFileSourceSPIFFS("/meow.mp3");
-  out = new AudioOutputI2SNoDAC();
-  id3 = new AudioFileSourceID3(file);
-  mp3 = new AudioGeneratorMP3();
-  mp3->begin(id3, out);
+  if (wav) if(wav->isRunning()) wav->stop();
+  file = new AudioFileSourcePROGMEM( meowWav, sizeof(meowWav) );
+  wav->begin(file, out);
   return true;
 }
 
 bool Meow::loop() {
-  if (mp3 && mp3->isRunning()) {
-    if (!mp3->loop()) {
-      mp3->stop();
+  if (wav && wav->isRunning()) {
+    if (!wav->loop()) {
+      wav->stop();
       return false;
     }
     return true;

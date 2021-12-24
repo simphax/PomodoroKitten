@@ -14,6 +14,8 @@
         text-align: center;
         font-size: 8rem;
         margin: 0;
+        transition: all 1s;
+        transition-timing-function: ease-in-out;
       }
       #state {
         display: block;
@@ -23,6 +25,8 @@
         text-align: center;
         font-size: 2rem;
         margin-top: 20%;
+        transition: all 1s;
+        transition-timing-function: ease-in-out;
       }
       #cat {
         width: 200px;
@@ -51,7 +55,7 @@
     <div id="main">
       <span id="state"></span>
       <h1 id="time"></h1>
-      <model-viewer id="model-viewer" alt="Cat" src="cat.glb"></model-viewer>
+      <model-viewer interpolation-decay="40" id="model-viewer" alt="Cat" src="cat.glb"></model-viewer>
     </div>
   </body>
 
@@ -65,7 +69,7 @@
     var modelViewer = document.getElementById("model-viewer");
 
     function init() {
-      Socket = new WebSocket("ws://192.168.0.164:81/");
+      Socket = new WebSocket("ws://"+location.hostname+":81/");
       Socket.onmessage = function (event) {
         processReceivedCommand(event);
       };
@@ -82,7 +86,25 @@
       timeDOM.innerHTML = formattedTimeLeft;
       stateDOM.innerHTML = pomodoroState;
 
-      modelViewer.cameraOrbit = `0deg ${(x - 510) * -1}deg 4m`;
+      if(pomodoroState == "SLEEP") {
+        timeDOM.style.height = "0px";
+        stateDOM.style.height = "0px";
+        timeDOM.style.opacity = "0";
+        stateDOM.style.opacity = "0";
+      } else {
+        timeDOM.style.height = "160px";
+        stateDOM.style.height = "40px";
+        timeDOM.style.opacity = "1";
+        stateDOM.style.opacity = "1";
+      }
+
+      if(pomodoroState == "SHORT BREAK" || pomodoroState == "LONG BREAK") {
+        bodyDOM.style.background = "#00B454";
+      } else {
+        bodyDOM.style.background = "black";
+      }
+
+      modelViewer.cameraOrbit = `0deg ${(x - 500) * -1}deg 4m`;
     }
 
     function fancyTimeFormat(duration) {

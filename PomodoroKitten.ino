@@ -18,9 +18,9 @@ static const int GREEN_LED_PIN = D2;
 static const int YELLOW_LED_PIN = D5;
 
 static const int POMODORO_SHORT_BREAK_COUNT = 3;
-static const int POMODORO_FOCUS_LENGTH = 10; //1500 = 25 minutes
-static const int POMODORO_SHORT_BREAK_LENGTH = 10; //300 = 5 minutes
-static const int POMODORO_LONG_BREAK_LENGTH = 10; //900 =  15 minutes
+static const int POMODORO_FOCUS_LENGTH = 1500; //1500 = 25 minutes
+static const int POMODORO_SHORT_BREAK_LENGTH = 300; //300 = 5 minutes
+static const int POMODORO_LONG_BREAK_LENGTH = 900; //900 =  15 minutes
 static const int ACCELEROMETER_X_PIN = A0;
 
 
@@ -42,6 +42,7 @@ Purr *purr;
 OneShotTimer pomodoroFocusTimer(POMODORO_FOCUS_LENGTH);
 OneShotTimer pomodoroShortBreakTimer(POMODORO_SHORT_BREAK_LENGTH);
 OneShotTimer pomodoroLongBreakTimer(POMODORO_LONG_BREAK_LENGTH);
+OneShotTimer webServerStartupTimer(1);
 FrameRateCounter pulsingGreenTimer(30); //30 updates per second
 FrameRateCounter pulsingYellowTimer(30); //30 updates per second
 FrameRateCounter fadeOutTimer(30); //30 updates per second
@@ -109,43 +110,7 @@ void loop()
 
 void startUp() {
   Serial.println("Awake");
-  webServer = new WebServer();
-  webServer->setup();
-  webServer->onRequestStatus([&]() {
-    unsigned long pomodoroTimeLeft = 0;
-    String state = "UNDEFINED";
-    switch(pomodoroState) {
-      case OFF:
-        pomodoroTimeLeft = 0;
-        state = "OFF";
-        break;
-      case SLEEP:
-        pomodoroTimeLeft = 0;
-        state = "SLEEP";
-        break;
-      case FOCUS:
-        pomodoroTimeLeft = POMODORO_FOCUS_LENGTH * 1000 - pomodoroFocusTimer.msec();
-        state = "FOCUS";
-        break;
-      case SHORTBREAK:
-        pomodoroTimeLeft = POMODORO_SHORT_BREAK_LENGTH * 1000 - pomodoroShortBreakTimer.msec();
-        state = "SHORT BREAK";
-        break;
-      case LONGBREAK:
-        pomodoroTimeLeft = POMODORO_LONG_BREAK_LENGTH * 1000 - pomodoroLongBreakTimer.msec();
-        state = "LONG BREAK";
-        break;
-      default:
-        break;
-    }
-    String xstr = "";
-    xstr += analogRead(ACCELEROMETER_X_PIN);
-    xstr += ",";
-    xstr += pomodoroTimeLeft;
-    xstr += ",";
-    xstr += state;
-    return xstr;
-  });
+  
   
   audioLogger = &Serial;
   
@@ -162,7 +127,30 @@ void startUp() {
   shakeDetection = new ShakeDetection();
   shakeDetection->setup();
   shakeDetection->onShake([&]() {
-    pomodoroState = FOCUS;
+    if(!webServer) webServerStartupTimer.start();
+    switch(pomodoroState) {
+      case OFF:
+      case SLEEP:
+        pomodoroState = FOCUS;
+        break;
+      case FOCUS:
+        if(shortBreaksTaken >= POMODORO_SHORT_BREAK_COUNT) {
+          pomodoroState = LONGBREAK;
+          shortBreaksTaken = 0;
+        } else {
+          pomodoroState = SHORTBREAK;
+          shortBreaksTaken++;
+        }
+        break;
+      case SHORTBREAK:
+        pomodoroState = FOCUS;
+        break;
+      case LONGBREAK:
+        pomodoroState = FOCUS;
+        break;
+      default:
+        break;
+    }
     pomodoroStateBegin();
   });
 
@@ -219,7 +207,47 @@ void startUp() {
     pomodoroStateBegin();
   });
   
-  pomodoroState = FOCUS;
+  webServerStartupTimer.onUpdate([&]() {
+    webServer = new WebServer();
+    webServer->setup();
+    webServer->onRequestStatus([&]() {
+      unsigned long pomodoroTimeLeft = 0;
+      String state = "UNDEFINED";
+      switch(pomodoroState) {
+        case OFF:
+          pomodoroTimeLeft = 0;
+          state = "OFF";
+          break;
+        case SLEEP:
+          pomodoroTimeLeft = 0;
+          state = "SLEEP";
+          break;
+        case FOCUS:
+          pomodoroTimeLeft = POMODORO_FOCUS_LENGTH * 1000 - pomodoroFocusTimer.msec();
+          state = "FOCUS";
+          break;
+        case SHORTBREAK:
+          pomodoroTimeLeft = POMODORO_SHORT_BREAK_LENGTH * 1000 - pomodoroShortBreakTimer.msec();
+          state = "SHORT BREAK";
+          break;
+        case LONGBREAK:
+          pomodoroTimeLeft = POMODORO_LONG_BREAK_LENGTH * 1000 - pomodoroLongBreakTimer.msec();
+          state = "LONG BREAK";
+          break;
+        default:
+          break;
+      }
+      String xstr = "";
+      xstr += analogRead(ACCELEROMETER_X_PIN);
+      xstr += ",";
+      xstr += pomodoroTimeLeft;
+      xstr += ",";
+      xstr += state;
+      return xstr;
+    });
+  });
+  
+  pomodoroState = OFF;
   pomodoroStateBegin();
 }
 
@@ -231,9 +259,12 @@ void pomodoroStateBegin() {
       break;
     case SLEEP:
       Serial.println("ZZZZZZZ");
-      /*meow->stop();
+      meow->stop();
       purr->stop();
-      yawn->play();*/
+      yawn->play();
+      pomodoroFocusTimer.stop();
+      pomodoroShortBreakTimer.stop();
+      pomodoroLongBreakTimer.stop();
       fadeOutTimer.start();
       break;
     case FOCUS:
@@ -243,9 +274,12 @@ void pomodoroStateBegin() {
       lastGreenValue = 0;
       Serial.println("MEOW");
       //pulsingYellowTimer.start();
-      /*yawn->stop();
+      yawn->stop();
       purr->stop();
-      meow->play();*/
+      meow->play();
+      pomodoroFocusTimer.stop();
+      pomodoroShortBreakTimer.stop();
+      pomodoroLongBreakTimer.stop();
       pomodoroFocusTimer.start();
       break;
     case SHORTBREAK:
@@ -255,9 +289,12 @@ void pomodoroStateBegin() {
       lastGreenValue = 0;
       Serial.println("SHORTBREAK MEOW");
       pulsingGreenTimer.start();
-      /*yawn->stop();
+      yawn->stop();
       meow->stop();
-      purr->play();*/
+      purr->play();
+      pomodoroFocusTimer.stop();
+      pomodoroShortBreakTimer.stop();
+      pomodoroLongBreakTimer.stop();
       pomodoroShortBreakTimer.start();
       break;
     case LONGBREAK:
@@ -266,51 +303,47 @@ void pomodoroStateBegin() {
       digitalWrite(GREEN_LED_PIN, HIGH);
       lastGreenValue = 0;
       Serial.println("LONGBREAK MEOW");
-      /*yawn->stop();
+      yawn->stop();
       meow->stop();
-      purr->play();*/
+      purr->play();
+      pomodoroFocusTimer.stop();
+      pomodoroShortBreakTimer.stop();
+      pomodoroLongBreakTimer.stop();
       pomodoroLongBreakTimer.start();
       break;
   }
-  delay(500);
 }
 
 //Returns false if it's ok to delay the next loop
 bool pomodoroLoop() {
   delay(5);
-  webServer->loop();
+  if(webServer) {
+    webServer->loop();
+  } else {
+    webServerStartupTimer.update();
+  }
+  shakeDetection->loop();
   switch(pomodoroState) {
     case OFF:
-      shakeDetection->loop();
-      //delay(5);
       return false;
     case SLEEP:
-      shakeDetection->loop();
-      if(!yawn->loop()) {
-        //delay(5);
-      }
+      yawn->loop();
       fadeOutTimer.update();
       return false;
     case FOCUS:
       leanBackDetection->loop();
-      if(!meow->loop()) {
-        //delay(5);
-      }
+      meow->loop();
       pomodoroFocusTimer.update();
       return true;
     case SHORTBREAK:
       leanBackDetection->loop();
       pulsingGreenTimer.update();
-      if(!purr->loop()) {
-        //delay(5);
-      }
+      purr->loop();
       pomodoroShortBreakTimer.update();
       return true;
     case LONGBREAK:
       leanBackDetection->loop();
-      if(!purr->loop()) {
-        //delay(5);
-      }
+      purr->loop();
       pomodoroLongBreakTimer.update();
       return true;
     default:
