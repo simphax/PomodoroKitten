@@ -91,8 +91,8 @@ void loop()
   if(halfAsleep) {
     unsigned long now = millis();
     if(now - lastActiveTime > INITIAL_ACTIVITY_CHECK_TIMEOUT) {
-      Serial.println("Going into deep sleep for 5 seconds");
-      ESP.deepSleep(5e6);
+      Serial.println("Going into deep sleep for 3 seconds");
+      ESP.deepSleep(3e6);
     }
     wakeUpDetection->loop();
   } else {
@@ -101,8 +101,8 @@ void loop()
       lastActiveTime = now;
     }
     if(now - lastActiveTime > DEEP_SLEEP_TIMEOUT) {
-      Serial.println("Going into deep sleep for 5 seconds");
-      ESP.deepSleep(5e6);
+      Serial.println("Going into deep sleep for 3 seconds");
+      ESP.deepSleep(3e6);
     }
     pomodoroLoop();
   }
