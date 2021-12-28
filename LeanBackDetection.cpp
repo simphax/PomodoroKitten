@@ -2,7 +2,7 @@
 #include "LeanBackDetection.h"
 
 static const int OUT_OF_BOUNDS_THRESHOLD = 30;
-static const int LEAN_BACK_X = 320;
+static const int LEAN_BACK_X = 600;
 static const int TIME_AVERAGE = 100;
 static const int TIME_READ = 20;
 static const int LEANING_DURATION_THRESHOLD = 3000;
