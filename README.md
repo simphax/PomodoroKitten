@@ -1,0 +1,11 @@
+## Set-up
+- Download Arduino IDE
+- Go to File > Preferences and enter http://arduino.esp8266.com/stable/package_esp8266com_index.json into "Additional Boards Manager URL:s"
+- Go to Tools > Board > Boards Manager... and install:
+    - esp8266 by ESP8266 Community (>=3.0.2)
+- Go to Tools > Manage libraries... and install:
+    - ESP8266Audio by Earle F. Philhower, III (>=1.9.4)
+    - PollingTimer by hideakitai (>=0.4.3)
+    - WebSockets by Markus Sattler (>=2.3.5)
+- Set board type to "NodeMCU 1.0 (ESP-12E Module)" (or corresponding)
+- Set CPU Frequency to 160 MHz
